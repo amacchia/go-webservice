@@ -1,6 +1,6 @@
 package model
 
 type AnimalFacts struct {
-	DogFact string `json:"dogFact"` // Use camelCase for response body
+	DogFact string `json:"dogFact"`
 	CatFact string `json:"catFact"`
 }

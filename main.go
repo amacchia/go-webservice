@@ -25,6 +25,6 @@ func getRandomAnimalFactsHandler(animalFactsService service.AnimalFactsService) 
 // TODO: Use table tests where applicable
 // TODO: Add error scenarios
 // TODO: Logging?
-// TODO: Code coverage?
+// TODO: Code coverage in CI build
 // TODO: Remove dependency on gin library
 // TODO: Debug program

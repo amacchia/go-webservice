@@ -11,14 +11,14 @@ type AnimalFactsService interface {
 }
 
 type animalFactsServiceImpl struct {
-	DogFactService dogclient.DogFactService
-	CatFactService catclient.CatFactClient
+	dogFactClient dogclient.DogFactClient
+	catFactClient catclient.CatFactClient
 }
 
 func NewAnimalFactsService() *animalFactsServiceImpl {
 	return &animalFactsServiceImpl{
-		DogFactService: dogclient.NewDogFactClient(),
-		CatFactService: catclient.NewCatClient(),
+		dogFactClient: dogclient.NewDogFactClient(),
+		catFactClient: catclient.NewCatClient(),
 	}
 }
 
@@ -27,8 +27,8 @@ func (animalFactsServiceImpl *animalFactsServiceImpl) RetrieveAnimalFacts() *mod
 	catFactChannel := make(chan string)
 	numberOfChannels := 2
 
-	go animalFactsServiceImpl.DogFactService.GetRandomDogFact(dogFactChannel)
-	go animalFactsServiceImpl.CatFactService.GetRandomCatFact(catFactChannel)
+	go animalFactsServiceImpl.dogFactClient.GetRandomDogFact(dogFactChannel)
+	go animalFactsServiceImpl.catFactClient.GetRandomCatFact(catFactChannel)
 
 	return collectAnimalFacts(numberOfChannels, dogFactChannel, catFactChannel)
 }

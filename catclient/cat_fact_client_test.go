@@ -14,10 +14,10 @@ func TestGetRandomCatFact_Success(t *testing.T) {
 	}))
 	defer server.Close()
 	channel := make(chan string)
-	catFactService := NewCatClient()
-	catFactService.catFactsApiUrl = server.URL
+	catFactClient := NewCatClient()
+	catFactClient.catFactsApiUrl = server.URL
 
-	go catFactService.GetRandomCatFact(channel)
+	go catFactClient.GetRandomCatFact(channel)
 
 	actualCatFact := <-channel
 	if actualCatFact != "Some random fact" {

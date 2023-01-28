@@ -18,10 +18,10 @@ func TestGetRandomDogFact_Success(t *testing.T) {
 	}))
 	defer server.Close()
 	channel := make(chan string)
-	dogFactService := NewDogFactClient()
-	dogFactService.dogFactsApiServerUrl = server.URL // Can change this variable in the same package
+	dogFactClient := NewDogFactClient()
+	dogFactClient.dogFactsApiServerUrl = server.URL
 
-	go dogFactService.GetRandomDogFact(channel)
+	go dogFactClient.GetRandomDogFact(channel)
 
 	actualDogFact := <-channel
 	if actualDogFact != "Some random fact" {

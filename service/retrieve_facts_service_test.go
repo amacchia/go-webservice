@@ -18,8 +18,8 @@ func (mockCatFactService *MockCatFactService) GetRandomCatFact(factChannel chan<
 
 func TestRetrieveAnimalFacts(t *testing.T) {
 	retrieveAnimalFactsService := NewAnimalFactsService()
-	retrieveAnimalFactsService.DogFactService = &MockDogFactService{}
-	retrieveAnimalFactsService.CatFactService = &MockCatFactService{}
+	retrieveAnimalFactsService.dogFactClient = &MockDogFactService{}
+	retrieveAnimalFactsService.catFactClient = &MockCatFactService{}
 
 	actualAnimalFacts := retrieveAnimalFactsService.RetrieveAnimalFacts()
 	actualDogFact := actualAnimalFacts.DogFact
