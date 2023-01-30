@@ -14,7 +14,7 @@ func TestGetRandomCatFact_Success(t *testing.T) {
 	}))
 	defer server.Close()
 	channel := make(chan string)
-	catFactClient := NewCatClient()
+	catFactClient := NewCatFactClient()
 	catFactClient.catFactsApiUrl = server.URL
 
 	go catFactClient.GetRandomCatFact(channel)

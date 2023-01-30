@@ -20,13 +20,13 @@ type catFactResponse struct {
 	Data []string
 }
 
-func NewCatClient() *catFactClientImpl {
+func NewCatFactClient() *catFactClientImpl {
 	return &catFactClientImpl{catFactURL}
 }
 
 func (catFactClientImpl *catFactClientImpl) GetRandomCatFact(factChannel chan<- string) {
 	res, err := http.Get(catFactClientImpl.catFactsApiUrl)
-	if err != nil {
+	if err != nil { // or status code not 200
 		panic(err)
 	}
 	defer res.Body.Close()

@@ -2,15 +2,18 @@ package dogclient
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+
+	"example.com/webservice/model"
 )
 
 const dogFactURL string = "https://dog-api.kinduff.com"
 
 type DogFactClient interface {
-	GetRandomDogFact(factChannel chan<- string)
+	GetRandomDogFact(factChannel chan<- model.AnimalFactResult)
 }
 
 type dogFactClientImpl struct {
@@ -26,21 +29,32 @@ func NewDogFactClient() *dogFactClientImpl {
 	return &dogFactClientImpl{dogFactURL}
 }
 
-func (dogFactClientImpl *dogFactClientImpl) GetRandomDogFact(factChannel chan<- string) {
+func (dogFactClientImpl *dogFactClientImpl) GetRandomDogFact(factChannel chan<- model.AnimalFactResult) {
 	url := fmt.Sprintf("%s/api/facts", dogFactClientImpl.dogFactsApiServerUrl)
+	animalFactResult := model.AnimalFactResult{}
 
 	res, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		animalFactResult.Error = errors.New("error retrieving dog fact")
+		factChannel <- animalFactResult
+		return
 	}
 	defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
+	if res.StatusCode != 200 {
+		animalFactResult.Error = fmt.Errorf("%d status code returned from dog fact API", res.StatusCode)
+		factChannel <- animalFactResult
+		return
 	}
 
+	body, _ := io.ReadAll(res.Body)
 	dogFact := dogFactResponse{}
-	json.Unmarshal(body, &dogFact)
-	factChannel <- dogFact.Facts[0]
+	err = json.Unmarshal(body, &dogFact)
+	if err != nil {
+		animalFactResult.Error = errors.New("error parsing dog fact response body")
+		factChannel <- animalFactResult
+		return
+	}
+	animalFactResult.AnimalFact = dogFact.Facts[0]
+	factChannel <- animalFactResult
 }

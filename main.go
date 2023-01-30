@@ -11,7 +11,7 @@ func main() {
 	animalFactsService := service.NewAnimalFactsService()
 	r := gin.Default()
 	r.GET("/random-animal-facts", getRandomAnimalFactsHandler(animalFactsService))
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run()
 }
 
 func getRandomAnimalFactsHandler(animalFactsService service.AnimalFactsService) gin.HandlerFunc {
@@ -21,10 +21,3 @@ func getRandomAnimalFactsHandler(animalFactsService service.AnimalFactsService) 
 	}
 	return handler
 }
-
-// TODO: Use table tests where applicable
-// TODO: Add error scenarios
-// TODO: Logging?
-// TODO: Code coverage in CI build
-// TODO: Remove dependency on gin library
-// TODO: Debug program
