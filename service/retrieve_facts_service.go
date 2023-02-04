@@ -7,7 +7,7 @@ import (
 )
 
 type AnimalFactsService interface {
-	RetrieveAnimalFacts() *model.AnimalFacts
+	RetrieveAnimalFacts() (*model.AnimalFacts, error)
 }
 
 type animalFactsServiceImpl struct {
@@ -22,7 +22,7 @@ func NewAnimalFactsService() *animalFactsServiceImpl {
 	}
 }
 
-func (animalFactsServiceImpl *animalFactsServiceImpl) RetrieveAnimalFacts() *model.AnimalFacts {
+func (animalFactsServiceImpl *animalFactsServiceImpl) RetrieveAnimalFacts() (*model.AnimalFacts, error) {
 	dogFactChannel := make(chan model.AnimalFactResult)
 	catFactChannel := make(chan model.AnimalFactResult)
 	numberOfChannels := 2
@@ -33,15 +33,21 @@ func (animalFactsServiceImpl *animalFactsServiceImpl) RetrieveAnimalFacts() *mod
 	return collectAnimalFacts(numberOfChannels, dogFactChannel, catFactChannel)
 }
 
-func collectAnimalFacts(numberOfChannels int, dogFactChannel <-chan model.AnimalFactResult, catFactChannel <-chan model.AnimalFactResult) *model.AnimalFacts {
+func collectAnimalFacts(numberOfChannels int, dogFactChannel <-chan model.AnimalFactResult, catFactChannel <-chan model.AnimalFactResult) (*model.AnimalFacts, error) {
 	var dogFactResult, catFactResult model.AnimalFactResult
 
 	for i := 0; i < numberOfChannels; i++ {
 		select {
 		case dogFactResult = <-dogFactChannel:
+			if dogFactResult.Error != nil {
+				return nil, dogFactResult.Error
+			}
 		case catFactResult = <-catFactChannel:
+			if catFactResult.Error != nil {
+				return nil, catFactResult.Error
+			}
 		}
 	}
 
-	return &model.AnimalFacts{DogFact: dogFactResult.AnimalFact, CatFact: catFactResult.AnimalFact}
+	return &model.AnimalFacts{DogFact: dogFactResult.AnimalFact, CatFact: catFactResult.AnimalFact}, nil
 }

@@ -16,7 +16,7 @@ func main() {
 
 func getRandomAnimalFactsHandler(animalFactsService service.AnimalFactsService) gin.HandlerFunc {
 	handler := func(c *gin.Context) {
-		animalFacts := animalFactsService.RetrieveAnimalFacts()
+		animalFacts, _ := animalFactsService.RetrieveAnimalFacts()
 		c.JSON(http.StatusOK, &animalFacts)
 	}
 	return handler
