@@ -18,13 +18,13 @@ type animalFactsServiceImpl struct {
 func NewAnimalFactsService() *animalFactsServiceImpl {
 	return &animalFactsServiceImpl{
 		dogFactClient: dogclient.NewDogFactClient(),
-		catFactClient: catclient.NewCatClient(),
+		catFactClient: catclient.NewCatFactClient(),
 	}
 }
 
 func (animalFactsServiceImpl *animalFactsServiceImpl) RetrieveAnimalFacts() *model.AnimalFacts {
-	dogFactChannel := make(chan string)
-	catFactChannel := make(chan string)
+	dogFactChannel := make(chan model.AnimalFactResult)
+	catFactChannel := make(chan model.AnimalFactResult)
 	numberOfChannels := 2
 
 	go animalFactsServiceImpl.dogFactClient.GetRandomDogFact(dogFactChannel)
@@ -33,15 +33,15 @@ func (animalFactsServiceImpl *animalFactsServiceImpl) RetrieveAnimalFacts() *mod
 	return collectAnimalFacts(numberOfChannels, dogFactChannel, catFactChannel)
 }
 
-func collectAnimalFacts(numberOfChannels int, dogFactChannel <-chan string, catFactChannel <-chan string) *model.AnimalFacts {
-	var dogFact, catFact string
+func collectAnimalFacts(numberOfChannels int, dogFactChannel <-chan model.AnimalFactResult, catFactChannel <-chan model.AnimalFactResult) *model.AnimalFacts {
+	var dogFactResult, catFactResult model.AnimalFactResult
 
 	for i := 0; i < numberOfChannels; i++ {
 		select {
-		case dogFact = <-dogFactChannel:
-		case catFact = <-catFactChannel:
+		case dogFactResult = <-dogFactChannel:
+		case catFactResult = <-catFactChannel:
 		}
 	}
 
-	return &model.AnimalFacts{DogFact: dogFact, CatFact: catFact}
+	return &model.AnimalFacts{DogFact: dogFactResult.AnimalFact, CatFact: catFactResult.AnimalFact}
 }

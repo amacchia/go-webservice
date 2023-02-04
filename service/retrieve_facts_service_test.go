@@ -1,6 +1,10 @@
 package service
 
-import "testing"
+import (
+	"testing"
+
+	"example.com/webservice/model"
+)
 
 type MockDogFactService struct{}
 type MockCatFactService struct{}
@@ -8,12 +12,12 @@ type MockCatFactService struct{}
 const expectedDogFact = "Some random dog fact"
 const expectedCatFact = "Some random cat fact"
 
-func (mockDogFactService *MockDogFactService) GetRandomDogFact(factChannel chan<- string) {
-	factChannel <- expectedDogFact
+func (mockDogFactService *MockDogFactService) GetRandomDogFact(factChannel chan<- model.AnimalFactResult) {
+	factChannel <- model.AnimalFactResult{AnimalFact: expectedDogFact}
 }
 
-func (mockCatFactService *MockCatFactService) GetRandomCatFact(factChannel chan<- string) {
-	factChannel <- expectedCatFact
+func (mockCatFactService *MockCatFactService) GetRandomCatFact(factChannel chan<- model.AnimalFactResult) {
+	factChannel <- model.AnimalFactResult{AnimalFact: expectedCatFact}
 }
 
 func TestRetrieveAnimalFacts(t *testing.T) {

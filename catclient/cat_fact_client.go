@@ -2,14 +2,18 @@ package catclient
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
+
+	"example.com/webservice/model"
 )
 
 const catFactURL string = "https://meowfacts.herokuapp.com/"
 
 type CatFactClient interface {
-	GetRandomCatFact(factChannel chan<- string)
+	GetRandomCatFact(factChannel chan<- model.AnimalFactResult)
 }
 
 type catFactClientImpl struct {
@@ -24,19 +28,31 @@ func NewCatFactClient() *catFactClientImpl {
 	return &catFactClientImpl{catFactURL}
 }
 
-func (catFactClientImpl *catFactClientImpl) GetRandomCatFact(factChannel chan<- string) {
+func (catFactClientImpl *catFactClientImpl) GetRandomCatFact(factChannel chan<- model.AnimalFactResult) {
+	animalFactResult := model.AnimalFactResult{}
+
 	res, err := http.Get(catFactClientImpl.catFactsApiUrl)
-	if err != nil { // or status code not 200
-		panic(err)
+	if err != nil {
+		animalFactResult.Error = errors.New("error retrieving cat fact")
+		factChannel <- animalFactResult
+		return
 	}
 	defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
+	if res.StatusCode != 200 {
+		animalFactResult.Error = fmt.Errorf("%d status code returned from cat fact API", res.StatusCode)
+		factChannel <- animalFactResult
+		return
 	}
 
+	body, _ := io.ReadAll(res.Body)
 	catFact := catFactResponse{}
-	json.Unmarshal(body, &catFact)
-	factChannel <- catFact.Data[0]
+	err = json.Unmarshal(body, &catFact)
+	if err != nil {
+		animalFactResult.Error = errors.New("error parsing cat fact response body")
+		factChannel <- animalFactResult
+		return
+	}
+	animalFactResult.AnimalFact = catFact.Data[0]
+	factChannel <- animalFactResult
 }
