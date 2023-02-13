@@ -53,7 +53,7 @@ func Test_catFactClientImpl_GetRandomCatFact(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := serverSetup(t, tt.apiResponseCode, tt.apiResonseBody)
+			server := serverSetup(tt.apiResponseCode, tt.apiResonseBody)
 			defer server.Close()
 			channel := make(chan model.AnimalFactResult)
 			catFactClient := NewCatFactClient()
@@ -75,7 +75,7 @@ func Test_catFactClientImpl_GetRandomCatFact(t *testing.T) {
 	}
 }
 
-func serverSetup(t *testing.T, statusCode int, responseBody string) *httptest.Server {
+func serverSetup(statusCode int, responseBody string) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(statusCode)
 		w.Write([]byte(responseBody))

@@ -10,7 +10,6 @@ import (
 
 	"example.com/webservice/model"
 	"example.com/webservice/service"
-	"github.com/gin-gonic/gin"
 )
 
 type MockAnimalFactsService struct{}
@@ -30,6 +29,7 @@ func (mockAnimalFactsServiceWithError *MockAnimalFactsServiceWithError) Retrieve
 func Test_getRandomAnimalFactsHandler(t *testing.T) {
 	tests := []struct {
 		name               string
+		httpMethod         string
 		animalFactsService service.AnimalFactsService
 		expectedStatusCode int
 		expectedDogFact    string
@@ -38,6 +38,7 @@ func Test_getRandomAnimalFactsHandler(t *testing.T) {
 	}{
 		{
 			name:               "Success",
+			httpMethod:         "GET",
 			animalFactsService: &MockAnimalFactsService{},
 			expectedStatusCode: http.StatusOK,
 			expectedDogFact:    expectedDogFact,
@@ -45,22 +46,32 @@ func Test_getRandomAnimalFactsHandler(t *testing.T) {
 		},
 		{
 			name:               "Error returned from animal facts service",
+			httpMethod:         "GET",
 			animalFactsService: &MockAnimalFactsServiceWithError{},
 			expectedStatusCode: http.StatusInternalServerError,
 			wantErr:            true,
 		},
+		{
+			name:               "Send request with wrong HTTP method",
+			httpMethod:         "POST",
+			animalFactsService: &MockAnimalFactsService{},
+			expectedStatusCode: http.StatusMethodNotAllowed,
+			wantErr:            true,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			router := setUpRouter()
-			router.GET("/random-animal-facts", getRandomAnimalFactsHandler(tt.animalFactsService))
 			httpRecorder := httptest.NewRecorder()
-			req, _ := http.NewRequest("GET", "/random-animal-facts", nil)
+			req, _ := http.NewRequest(tt.httpMethod, "/random-animal-facts", nil)
+			handler := http.HandlerFunc(randomAnimalFactsHandler(tt.animalFactsService))
+			expectedContentType := "application/json"
 
-			router.ServeHTTP(httpRecorder, req)
+			handler.ServeHTTP(httpRecorder, req)
 			res, _ := io.ReadAll(httpRecorder.Body)
 			animalFacts := model.AnimalFacts{}
 			json.Unmarshal(res, &animalFacts)
+			headers := httpRecorder.Header()
 
 			if tt.expectedStatusCode != httpRecorder.Code {
 				t.Errorf("Expected %d but got %d", tt.expectedStatusCode, httpRecorder.Code)
@@ -71,12 +82,9 @@ func Test_getRandomAnimalFactsHandler(t *testing.T) {
 			if !tt.wantErr && tt.expectedCatFact != animalFacts.CatFact {
 				t.Errorf("Expected %s but got %s", tt.expectedCatFact, animalFacts.CatFact)
 			}
+			if !tt.wantErr && headers.Get("content-type") != expectedContentType {
+				t.Errorf("Expected content-type header to be %s but got %s", expectedContentType, headers.Get("content-type"))
+			}
 		})
 	}
-}
-
-func setUpRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	router := gin.Default()
-	return router
 }
