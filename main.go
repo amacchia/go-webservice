@@ -1,27 +1,49 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 
 	"example.com/webservice/service"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	mux := http.NewServeMux()
 	animalFactsService := service.NewAnimalFactsService()
-	r := gin.Default()
-	r.GET("/random-animal-facts", getRandomAnimalFactsHandler(animalFactsService))
-	r.Run()
+
+	mux.HandleFunc("/random-animal-facts", randomAnimalFactsHandler(animalFactsService))
+	http.ListenAndServe(":8080", mux)
 }
 
-func getRandomAnimalFactsHandler(animalFactsService service.AnimalFactsService) gin.HandlerFunc {
-	handler := func(c *gin.Context) {
-		animalFacts, err := animalFactsService.RetrieveAnimalFacts()
-		if err != nil {
-			c.Status(http.StatusInternalServerError)
-			return
+func randomAnimalFactsHandler(animalFactsService service.AnimalFactsService) func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getRandomAnimalFacts(animalFactsService, w)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
-		c.JSON(http.StatusOK, &animalFacts)
 	}
 	return handler
+}
+
+func getRandomAnimalFacts(animalFactsService service.AnimalFactsService, w http.ResponseWriter) {
+	animalFacts, err := animalFactsService.RetrieveAnimalFacts()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	writeSuccessfulResponse(w, animalFacts)
+}
+
+func writeSuccessfulResponse(w http.ResponseWriter, responseBody interface{}) {
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	encodeResponseAsJSON(responseBody, w)
+}
+
+func encodeResponseAsJSON(data interface{}, w io.Writer) {
+	enc := json.NewEncoder(w)
+	enc.Encode(data)
 }
