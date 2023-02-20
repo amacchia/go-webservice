@@ -22,7 +22,7 @@ func randomAnimalFactsHandler(animalFactsService service.AnimalFactsService) fun
 		case http.MethodGet:
 			getRandomAnimalFacts(animalFactsService, w)
 		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	}
 	return handler
@@ -31,7 +31,7 @@ func randomAnimalFactsHandler(animalFactsService service.AnimalFactsService) fun
 func getRandomAnimalFacts(animalFactsService service.AnimalFactsService, w http.ResponseWriter) {
 	animalFacts, err := animalFactsService.RetrieveAnimalFacts()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	writeSuccessfulResponse(w, animalFacts)
@@ -39,7 +39,6 @@ func getRandomAnimalFacts(animalFactsService service.AnimalFactsService, w http.
 
 func writeSuccessfulResponse(w http.ResponseWriter, responseBody interface{}) {
 	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	encodeResponseAsJSON(responseBody, w)
 }
 
