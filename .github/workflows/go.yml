@@ -21,7 +21,7 @@ jobs:
           go-version: 1.19
 
       - name: Build
-        run: go build ./main
+        run: go build -o=webservice ./main
 
       - name: Test
         run: go test -v -coverpkg=./... -coverprofile=profile.cov ./...
